@@ -35,7 +35,7 @@ Once the application is running, you can perform the following actions:
 - View all books in the inventory.
 
 ## Screenshots
-ebookstore-management/screenshots/
+[ebookstore-management/screenshots/](https://github.com/peggle-me-this/ebookstore-management/tree/master/screenshots)
 
 ## Credits
 This project was created by Bronwyn Barnes as part of HyperionDev Software Engineering Bootcamp
