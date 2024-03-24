@@ -33,6 +33,7 @@ Once the application is running, you can perform the following actions:
 - Delete a book from the inventory.
 - Search for books by title, author, or genre.
 - View all books in the inventory.
+- It is suggested to first view all books or search for a particular book to get the book ID to perform some functions.
 
 ## Screenshots
 [ebookstore-management/screenshots/](https://github.com/peggle-me-this/ebookstore-management/tree/master/screenshots)
