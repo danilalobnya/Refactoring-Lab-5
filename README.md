@@ -35,7 +35,7 @@ Once the application is running, you can perform the following actions:
 - View all books in the inventory.
 
 ## Screenshots
-Include screenshots of the application in action here.
+ebookstore-management/screenshots/
 
 ## Credits
 This project was created by Bronwyn Barnes as part of HyperionDev Software Engineering Bootcamp
