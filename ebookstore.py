@@ -7,10 +7,10 @@ log, update, delete, search for and view books in the store as well as provide
 quantity's of each book.
 '''
 
-
+# Function to create the 'book' table in the database
 def create_table():
-    conn = sqlite3.connect('ebookstore.db')
-    cursor = conn.cursor()
+    conn = sqlite3.connect('ebookstore.db')  # Connect to the SQLite database
+    cursor = conn.cursor() # Create a cursor object to execute SQL queries
 
     try:
         cursor.execute('''
@@ -21,24 +21,25 @@ def create_table():
                 genre TEXT,
                 qty INTEGER
             )
-        ''')
+        ''') # Execute SQL query to create the 'book' table if it doesn't exist
 
-        conn.commit()
+        conn.commit() # Commit the transaction
     except sqlite3.Error as e:
-        print(f"Error creating table: {e}")
+        print(f"Error creating table: {e}") # Print error message if an error occurs
     finally:
-        conn.close()
+        conn.close() # Close the database connection
 
-# Create initial table called book
+# Function to insert initial data into the 'book' table
 def insert_initial_data():
-    conn = sqlite3.connect('ebookstore.db')
-    cursor = conn.cursor()
+    conn = sqlite3.connect('ebookstore.db') # Connect to the SQLite database
+    cursor = conn.cursor() # Create a cursor object to execute SQL queries
 
     try:
-        cursor.execute('SELECT COUNT(*) FROM book')
-        existing_records = cursor.fetchone()[0]
+        cursor.execute('SELECT COUNT(*) FROM book')  # Execute SQL query to count existing records
+        existing_records = cursor.fetchone()[0] # Fetch the count of existing records
 
         if existing_records == 0:
+            # Insert initial data into the 'book' table if it's empty
             cursor.executemany('''
                 INSERT INTO book (id, title, author, genre, qty) VALUES (?, ?, ?, ?, ?)
             ''', [
@@ -49,13 +50,13 @@ def insert_initial_data():
                 (3005, 'Alice in Wonderland', 'Lewis Carroll', 'Fantasy', 12),
             ])
 
-            conn.commit()
+            conn.commit()  # Commit the transaction
     except sqlite3.Error as e:
-        print(f"Error inserting initial data: {e}")
+        print(f"Error inserting initial data: {e}")  # Print error message if an error occurs
     finally:
-        conn.close()
+        conn.close()  # Close the database connection
 
-
+# Capture a new book
 def enter_book():
     try:
         title = input("Enter book title: ")
@@ -66,8 +67,8 @@ def enter_book():
         print("Invalid input. Quantity must be a valid integer.")
         return
 
-    conn = sqlite3.connect('ebookstore.db')
-    cursor = conn.cursor()
+    conn = sqlite3.connect('ebookstore.db') # Connect to the SQLite database
+    cursor = conn.cursor()# Create a cursor object to execute SQL queries
 
     try:
         cursor.execute('''
@@ -76,14 +77,14 @@ def enter_book():
 
         book_id = cursor.lastrowid
 
-        conn.commit()
+        conn.commit() # Commit the transaction
         print(f"The book has been added to inventory. The ID has been assigned to {book_id}.")
     except sqlite3.Error as e:
-        print(f"Error entering book: {e}")
+        print(f"Error entering book: {e}") # Print error message if an error occurs
     finally:
-        conn.close()
+        conn.close() # Close the database connection
 
-
+# Function to update or edit book details using the book ID number
 def update_book():
     try:
         book_id = int(input("Enter book ID to update: "))
@@ -91,8 +92,8 @@ def update_book():
         print("Invalid input. Please enter a valid integer for book ID.")
         return
 
-    conn = sqlite3.connect('ebookstore.db')
-    cursor = conn.cursor()
+    conn = sqlite3.connect('ebookstore.db') # Connect to the SQLite database
+    cursor = conn.cursor()# Create a cursor object to execute SQL queries
 
     try:
         # Check if the book ID exists in the database
@@ -125,14 +126,14 @@ def update_book():
             WHERE id = ?
         ''', (new_title, new_author, new_genre, new_qty or book[4], book_id))
 
-        conn.commit()
+        conn.commit() # Commit the transaction
         print("Book details updated.")
     except sqlite3.Error as e:
-        print(f"Error updating book: {e}")
+        print(f"Error updating book: {e}") # Print error message if an error occurs
     finally:
-        conn.close()
+        conn.close() # Close the database connection
 
-
+# Function to delete a book with the book ID
 def delete_book():
     try:
         book_id = int(input("Enter book ID to delete: "))
@@ -140,8 +141,8 @@ def delete_book():
         print("Invalid input. Please enter a valid integer for book ID.")
         return
 
-    conn = sqlite3.connect('ebookstore.db')
-    cursor = conn.cursor()
+    conn = sqlite3.connect('ebookstore.db') # Connect to the SQLite database
+    cursor = conn.cursor() # Create a cursor object to execute SQL queries
 
     try:
         # Check if the book ID exists in the database
@@ -167,21 +168,21 @@ def delete_book():
                 DELETE FROM book WHERE id = ?
             ''', (book_id,))
 
-            conn.commit()
+            conn.commit() # Commit the transaction
             print("Book deleted.")
         else:
             print("Deletion canceled.")
     except sqlite3.Error as e:
-        print(f"Error deleting book: {e}")
+        print(f"Error deleting book: {e}") # Print error message if an error occurs
     finally:
-        conn.close()
+        conn.close() # Close the database connection
 
-
+# Function to search all the books by either the title/author/genre
 def search_books():
     keyword = input("Enter search keyword (title/author/genre): ").casefold()
 
-    conn = sqlite3.connect('ebookstore.db')
-    cursor = conn.cursor()
+    conn = sqlite3.connect('ebookstore.db') # Connect to the SQLite database
+    cursor = conn.cursor() # Create a cursor object to execute SQL queries
 
     try:
         cursor.execute('''
@@ -196,14 +197,14 @@ def search_books():
         else:
             print("No books found.")
     except sqlite3.Error as e:
-        print(f"Error searching books: {e}")
+        print(f"Error searching books: {e}") # Print error message if an error occurs
     finally:
-        conn.close()
+        conn.close() # Close the database connection
 
-
+# Function to view all the books and their corresponding ID numbers 
 def view_all_books():
-    conn = sqlite3.connect('ebookstore.db')
-    cursor = conn.cursor()
+    conn = sqlite3.connect('ebookstore.db') # Connect to the SQLite database
+    cursor = conn.cursor() # Create a cursor object to execute SQL queries
 
     try:
         # User input for sorting, filtering, and genre
@@ -239,9 +240,9 @@ def view_all_books():
         else:
             print("No books found.")
     except sqlite3.Error as e:
-        print(f"Error viewing all books: {e}")
+        print(f"Error viewing all books: {e}") # Print error message if an error occurs
     finally:
-        conn.close()
+        conn.close() # Close the database connection
 
 
 # Main program
@@ -275,4 +276,5 @@ if __name__ == "__main__":
             print("Exiting program. Goodbye!")
             break
         else:
+            # Print error message if an error occurs
             print("Invalid choice. Please try again.")
