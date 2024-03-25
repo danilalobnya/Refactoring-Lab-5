@@ -243,6 +243,27 @@ def view_all_books():
         print(f"Error viewing all books: {e}") # Print error message if an error occurs
     finally:
         conn.close() # Close the database connection
+        
+#Added 5 new functions for additional error handling
+# Function to handle invalid inputs when entering a new book
+def handle_invalid_input():
+    print("Invalid input. Please enter a valid integer.")
+
+# Function to handle errors when updating book details
+def handle_update_error(e):
+    print(f"Error updating book: {e}")
+
+# Function to handle errors when deleting a book
+def handle_delete_error(e):
+    print(f"Error deleting book: {e}")
+
+# Function to handle errors when searching for books
+def handle_search_error(e):
+    print(f"Error searching books: {e}")
+
+# Function to handle errors when viewing all books
+def handle_view_all_error(e):
+    print(f"Error viewing all books: {e}")
 
 
 # Main program
