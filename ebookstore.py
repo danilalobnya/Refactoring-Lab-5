@@ -56,6 +56,25 @@ def insert_initial_data():
     finally:
         conn.close()  # Close the database connection
 
+
+def create_indexes():
+    conn = sqlite3.connect('ebookstore.db')
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_book_title ON book(title)')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_book_author ON book(author)')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_book_genre ON book(genre)')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_book_qty ON book(qty)')
+
+        conn.commit()
+        print("Indexes created successfully.")
+    except sqlite3.Error as e:
+        print(f"Error creating indexes: {e}")
+    finally:
+        conn.close()
+
+
 # Capture a new book
 def enter_book():
     try:
@@ -177,6 +196,7 @@ def delete_book():
     finally:
         conn.close() # Close the database connection
 
+
 # Function to search all the books by either the title/author/genre
 def search_books():
     keyword = input("Enter search keyword (title/author/genre): ").casefold()
@@ -185,8 +205,12 @@ def search_books():
     cursor = conn.cursor() # Create a cursor object to execute SQL queries
 
     try:
+        # конкретные поля вместо SELECT *
         cursor.execute('''
-            SELECT * FROM book WHERE title LIKE ? OR author LIKE ? OR genre LIKE ?
+            SELECT id, title, author, genre, qty 
+            FROM book 
+            WHERE title LIKE ? OR author LIKE ? OR genre LIKE ?
+            ORDER BY title
         ''', ('%' + keyword + '%', '%' + keyword + '%', '%' + keyword + '%'))
 
         books = cursor.fetchall()
@@ -197,41 +221,24 @@ def search_books():
         else:
             print("No books found.")
     except sqlite3.Error as e:
-        print(f"Error searching books: {e}") # Print error message if an error occurs
+        handle_search_error(e)
     finally:
-        conn.close() # Close the database connection
+        conn.close()
 
-# Function to view all the books and their corresponding ID numbers 
+
+# Function to view all the books and their corresponding ID numbers
 def view_all_books():
     conn = sqlite3.connect('ebookstore.db') # Connect to the SQLite database
     cursor = conn.cursor() # Create a cursor object to execute SQL queries
 
     try:
-        # User input for sorting, filtering, and genre
-        sort_by = input("Sort by (title/author/qty/genre): ").lower()
-        filter_by = input("Filter by (leave blank for no filter): ").lower()
-        genre_filter = input("Filter by genre (leave blank for no filter): ").lower()
+        # конкретные поля
+        cursor.execute('''
+            SELECT id, title, author, genre, qty 
+            FROM book 
+            ORDER BY title
+        ''')
 
-        # Construct SQL query based on user input
-        query = 'SELECT * FROM book'
-
-        if filter_by or genre_filter:
-            query += ' WHERE '
-            if filter_by:
-                query += f"title LIKE '%{filter_by}%' OR author LIKE '%{filter_by}%'"
-            if filter_by and genre_filter:
-                query += ' AND '
-            if genre_filter:
-                query += f"genre LIKE '%{genre_filter}%'"
-
-        if sort_by in ('title', 'author', 'qty', 'genre'):
-            # Convert author names to lowercase for case-insensitive sorting
-            if sort_by == 'author':
-                query += f" ORDER BY LOWER(author)"
-            else:
-                query += f" ORDER BY {sort_by}"
-
-        cursor.execute(query)
         books = cursor.fetchall()
 
         if books:
@@ -240,10 +247,39 @@ def view_all_books():
         else:
             print("No books found.")
     except sqlite3.Error as e:
-        print(f"Error viewing all books: {e}") # Print error message if an error occurs
+        handle_view_all_error(e)
     finally:
-        conn.close() # Close the database connection
-        
+        conn.close()
+
+
+def analyze_original_search():
+    conn = sqlite3.connect('ebookstore.db')
+    cursor = conn.cursor()
+
+    print("Анализ оригинального запроса поиска:")
+    cursor.execute(
+        "EXPLAIN QUERY PLAN SELECT * FROM book WHERE title LIKE '%harry%' OR author LIKE '%harry%' OR genre LIKE '%harry%'")
+
+    for row in cursor:
+        print(row)
+
+    conn.close()
+
+
+def analyze_optimized_search():
+    conn = sqlite3.connect('ebookstore.db')
+    cursor = conn.cursor()
+
+    print("\nАнализ оптимизированного запроса поиска:")
+    cursor.execute(
+        "EXPLAIN QUERY PLAN SELECT id, title, author, genre, qty FROM book WHERE title LIKE '%harry%' OR author LIKE '%harry%' OR genre LIKE '%harry%' ORDER BY title")
+
+    for row in cursor:
+        print(row)
+
+    conn.close()
+
+
 #Added 5 new functions for additional error handling
 # Function to handle invalid inputs when entering a new book
 def handle_invalid_input():
@@ -278,6 +314,8 @@ if __name__ == "__main__":
         print("3. Delete book")
         print("4. Search books")
         print("5. View all books")
+        print("6. Analyze original search")
+        print("7. Analyze optimized search")
         print("0. Exit")
 
         choice = input("Enter your choice: ")
@@ -293,6 +331,10 @@ if __name__ == "__main__":
             search_books()
         elif choice == '5':
             view_all_books()
+        elif choice == '6':
+            analyze_original_search()
+        elif choice == '7':
+            analyze_optimized_search()
         elif choice == '0':
             print("Exiting program. Goodbye!")
             break
