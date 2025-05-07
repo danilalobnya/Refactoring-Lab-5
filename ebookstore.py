@@ -7,6 +7,7 @@ log, update, delete, search for and view books in the store as well as provide
 quantity's of each book.
 '''
 
+
 # Function to create the 'book' table in the database
 def create_table():
     conn = sqlite3.connect('ebookstore.db')  # Connect to the SQLite database
@@ -28,6 +29,7 @@ def create_table():
         print(f"Error creating table: {e}") # Print error message if an error occurs
     finally:
         conn.close() # Close the database connection
+
 
 # Function to insert initial data into the 'book' table
 def insert_initial_data():
@@ -103,6 +105,7 @@ def enter_book():
     finally:
         conn.close() # Close the database connection
 
+
 # Function to update or edit book details using the book ID number
 def update_book():
     try:
@@ -115,42 +118,75 @@ def update_book():
     cursor = conn.cursor()# Create a cursor object to execute SQL queries
 
     try:
-        # Check if the book ID exists in the database
-        cursor.execute('SELECT * FROM book WHERE id = ?', (book_id,))
+        # необходимые поля вместо SELECT *
+        cursor.execute('SELECT title, author, genre, qty FROM book WHERE id = ?', (book_id,))
         book = cursor.fetchone()
 
         if not book:
             print("Book ID not found. Please enter a valid book ID.")
             return
-            print("")
 
-        print("Current Book Details:")
-        print(f"ID: {book[0]}")
-        print(f"Title: {book[1]}")
-        print(f"Author: {book[2]}")
-        print(f"Genre: {book[3]}")
-        print(f"Quantity: {book[4]}")
-        print("")
+        current_title, current_author, current_genre, current_qty = book
 
-        # User input for updated book details
-        new_title = input("Enter new title (leave blank to keep current): ") or book[1]
-        new_author = input("Enter new author (leave blank to keep current): ") or book[2]
-        new_genre = input("Enter new genre (leave blank to keep current): ") or book[3]
-        new_qty = input("Enter new quantity (leave blank to keep current): ")
-        print("")
+        print("\nCurrent Book Details:")
+        print(f"Title: {current_title}")
+        print(f"Author: {current_author}")
+        print(f"Genre: {current_genre}")
+        print(f"Quantity: {current_qty}\n")
 
-        # Update only the attributes that are provided by the user
-        cursor.execute('''
-            UPDATE book SET title = ?, author = ?, genre = ?, qty = ?
-            WHERE id = ?
-        ''', (new_title, new_author, new_genre, new_qty or book[4], book_id))
+        updates = []
+        params = []
 
-        conn.commit() # Commit the transaction
-        print("Book details updated.")
+        new_title = input("Enter new title (leave blank to keep current): ").strip()
+        if new_title:
+            updates.append("title = ?")
+            params.append(new_title)
+        else:
+            params.append(current_title)
+
+        new_author = input("Enter new author (leave blank to keep current): ").strip()
+        if new_author:
+            updates.append("author = ?")
+            params.append(new_author)
+        else:
+            params.append(current_author)
+
+        new_genre = input("Enter new genre (leave blank to keep current): ").strip()
+        if new_genre:
+            updates.append("genre = ?")
+            params.append(new_genre)
+        else:
+            params.append(current_genre)
+
+        new_qty = input("Enter new quantity (leave blank to keep current): ").strip()
+        if new_qty:
+            try:
+                new_qty = int(new_qty)
+                updates.append("qty = ?")
+                params.append(new_qty)
+            except ValueError:
+                print("Invalid quantity - keeping current value")
+                params.append(current_qty)
+        else:
+            params.append(current_qty)
+
+        # обновляем только измененные поля
+        if updates:
+            update_query = f"UPDATE book SET {', '.join(updates)} WHERE id = ?"
+            params.append(book_id)
+
+            cursor.execute(update_query, params)
+            conn.commit()
+            print("Book details updated successfully.")
+        else:
+            print("No changes detected - book not updated.")
+
     except sqlite3.Error as e:
-        print(f"Error updating book: {e}") # Print error message if an error occurs
+        conn.rollback()
+        print(f"Error updating book: {e}")
     finally:
-        conn.close() # Close the database connection
+        conn.close()
+
 
 # Function to delete a book with the book ID
 def delete_book():
@@ -164,38 +200,34 @@ def delete_book():
     cursor = conn.cursor() # Create a cursor object to execute SQL queries
 
     try:
-        # Check if the book ID exists in the database
-        cursor.execute('SELECT * FROM book WHERE id = ?', (book_id,))
+        # необходимые поля вместо SELECT *
+        cursor.execute('SELECT id, title FROM book WHERE id = ?', (book_id,))
         book = cursor.fetchone()
 
         if not book:
             print("Book ID not found. Please enter a valid book ID.")
             return
 
-        print("Book Details:")
-        print(f"ID: {book[0]}")
-        print(f"Title: {book[1]}")
-        print(f"Author: {book[2]}")
-        print(f"Genre: {book[3]}")
-        print(f"Quantity: {book[4]}")
+        book_id, book_title = book
+        print(f"\nBook to delete: {book_title} (ID: {book_id})\n")
 
-        # Confirmation prompt
-        confirm = input(f"Are you sure you want to delete {book[1]} (ID: {book[0]})? (yes/no): ").lower()
+        while True:
+            confirm = input("Are you sure you want to delete this book? (yes/no): ").lower()
+            if confirm in ('yes', 'no'):
+                break
+            print("Please enter 'yes' or 'no'")
 
         if confirm == 'yes':
-            cursor.execute('''
-                DELETE FROM book WHERE id = ?
-            ''', (book_id,))
-
-            conn.commit() # Commit the transaction
-            print("Book deleted.")
+            cursor.execute('DELETE FROM book WHERE id = ?', (book_id,))
+            conn.commit()
+            print("Book deleted successfully.")
         else:
             print("Deletion canceled.")
     except sqlite3.Error as e:
-        print(f"Error deleting book: {e}") # Print error message if an error occurs
+        conn.rollback()
+        print(f"Error deleting book: {e}")
     finally:
-        conn.close() # Close the database connection
-
+        conn.close()
 
 # Function to search all the books by either the title/author/genre
 def search_books():
